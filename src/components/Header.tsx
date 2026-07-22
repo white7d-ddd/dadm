@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Settings, PhoneCall, Layers, FileText, Info, ShieldCheck, Wrench, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { Menu, X, Settings, PhoneCall, Layers, FileText, Info, ShieldCheck, Wrench, ChevronDown, ChevronUp } from 'lucide-react';
 import { Category, CompanyInfo } from '../types';
 
 interface HeaderProps {
@@ -224,50 +224,8 @@ export default function Header({
             </button>
           </nav>
 
-          {/* Desktop Right Utilities (Admin Pictogram) */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button
-              id="nav-admin"
-              onClick={() => handleNav('admin')}
-              title={isAdminLoggedIn ? '관리자메뉴' : '관리자모드'}
-              className={`flex items-center justify-center p-2.5 rounded-full border transition-all cursor-pointer relative group ${
-                activePage === 'admin'
-                  ? 'bg-neutral-900 border-neutral-900 text-white shadow-sm'
-                  : isAdminLoggedIn
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                  : 'border-neutral-200 text-neutral-500 hover:border-neutral-950 hover:text-neutral-950 hover:bg-neutral-50'
-              }`}
-            >
-              <User size={18} className={`transition-transform duration-350 group-hover:scale-110 ${isAdminLoggedIn ? 'text-emerald-600' : ''}`} />
-              {isAdminLoggedIn && (
-                <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-              )}
-              {/* Tooltip */}
-              <span className="absolute bottom-[-32px] right-0 bg-neutral-950 text-white text-[10px] font-sans px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                {isAdminLoggedIn ? '관리자메뉴' : '관리자모드'}
-              </span>
-            </button>
-          </div>
-
-          {/* Mobile Right Utilities (Admin Icon + Hamburger) */}
+          {/* Mobile Right Utilities (Hamburger) */}
           <div className="flex md:hidden items-center space-x-2">
-            <button
-              onClick={() => handleNav('admin')}
-              className={`p-2 rounded-full border transition-all cursor-pointer relative ${
-                activePage === 'admin'
-                  ? 'bg-neutral-900 border-neutral-900 text-white'
-                  : isAdminLoggedIn
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                  : 'border-neutral-200 text-neutral-500'
-              }`}
-              title="관리자모드"
-            >
-              <User size={16} className={isAdminLoggedIn ? 'text-emerald-600' : ''} />
-              {isAdminLoggedIn && (
-                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-500 ring-1 ring-white" />
-              )}
-            </button>
-
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-neutral-600 hover:text-neutral-900 focus:outline-none p-1.5"
@@ -441,27 +399,7 @@ export default function Header({
               </button>
             </div>
             
-            <div className="pt-2 mt-2">
-              <button
-                id="mobile-nav-admin"
-                onClick={() => handleNav('admin')}
-                className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-xs font-mono font-semibold ${
-                  activePage === 'admin'
-                    ? 'bg-neutral-900 text-white'
-                    : isAdminLoggedIn
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-100'
-                    : 'bg-neutral-50 text-neutral-700 border border-neutral-100 hover:bg-neutral-100'
-                }`}
-              >
-                <div className="flex items-center space-x-1.5">
-                  <User size={14} />
-                  <span>{isAdminLoggedIn ? 'ADMINISTRATOR DASHBOARD' : 'ADMIN LOGIN'}</span>
-                </div>
-                <span>→</span>
-              </button>
-            </div>
-            
-            <div className="pt-4 flex items-center justify-center space-x-2 text-xs font-mono text-neutral-400 bg-neutral-50 p-3 rounded-lg">
+            <div className="pt-2 flex items-center justify-center space-x-2 text-xs font-mono text-neutral-400 bg-neutral-50 p-3 rounded-lg">
               <PhoneCall size={12} />
               <span>문의전화: {companyInfo.tel}</span>
             </div>
