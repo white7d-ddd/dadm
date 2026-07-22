@@ -22,7 +22,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Product, Banner, CompanyInfo, Inquiry, Category, HomeSectionInfo, PopupItem } from '../types';
-import { getDirectImageUrl } from '../utils/imageUtils';
+import { getDirectImageUrl, convertSynologyToDirectUrl } from '../utils/imageUtils';
 import { ICON_MAP } from '../utils/iconMap';
 import { HomeSectionModal } from './AdminModals';
 
@@ -224,7 +224,7 @@ export default function AdminPanel({
       id: isEditingPopup ? isEditingPopup.id : `popup-${Date.now()}`,
       title: popupTitle,
       content: popupContent,
-      imageUrl: convertSynologyUrl(popupImageUrl),
+      imageUrl: convertSynologyToDirectUrl(popupImageUrl),
       linkUrl: popupLinkUrl,
       isActive: popupIsActive,
       width: Number(popupWidth) || 400,

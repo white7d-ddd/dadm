@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Trash2, Edit2, Layers, Image, Building, ShieldCheck, AlertTriangle, ArrowUp, ArrowDown, MapPin, Calendar } from 'lucide-react';
+import { X, Plus, Trash2, Edit2, Layers, Image, Building, ShieldCheck, AlertTriangle, ArrowUp, ArrowDown, MapPin, Calendar, Upload } from 'lucide-react';
 import { Product, Category, Banner, CompanyInfo, ConstructionProject, HomeSectionInfo } from '../types';
-import { getDirectImageUrl } from '../utils/imageUtils';
+import { getDirectImageUrl, convertSynologyToDirectUrl } from '../utils/imageUtils';
 import { ICON_MAP, AVAILABLE_ICONS } from '../utils/iconMap';
 
 // ==========================================
@@ -94,24 +94,7 @@ export function ProductModal({ isOpen, onClose, product, categories, onSave }: P
   };
 
   const convertSynologyUrl = (url: string): string => {
-    if (!url) return '';
-    const trimmed = url.trim();
-    if (trimmed.includes('/sharing/')) {
-      try {
-        const parsed = new URL(trimmed);
-        const parts = parsed.pathname.split('/').filter(Boolean);
-        const sharingIndex = parts.indexOf('sharing');
-        if (sharingIndex !== -1 && parts[sharingIndex + 1]) {
-          const shareId = parts[sharingIndex + 1];
-          parsed.pathname = '/fbsharing/api/download';
-          parsed.searchParams.set('id', shareId);
-          return parsed.toString();
-        }
-      } catch (e) {
-        // Fallback
-      }
-    }
-    return trimmed;
+    return convertSynologyToDirectUrl(url);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,7 +104,9 @@ export function ProductModal({ isOpen, onClose, product, categories, onSave }: P
       return;
     }
 
-    const cleanedImages = pImageUrls.filter(url => url.trim() !== '');
+    const cleanedImages = pImageUrls
+      .map(url => convertSynologyToDirectUrl(url))
+      .filter(url => url.trim() !== '');
     const finalImages = cleanedImages.length > 0 ? cleanedImages : ['https://picsum.photos/seed/default/800/600'];
 
     const savedProduct: Product = {
@@ -274,12 +259,17 @@ export function ProductModal({ isOpen, onClose, product, categories, onSave }: P
 
             {/* Images */}
             <div>
-              <label className="block text-xs font-bold text-neutral-500 mb-2">제품 사진 링크 (대표사진 및 서브사진 리스트)</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs font-bold text-neutral-500">제품 사진 등록 (URL 입력 또는 파일 직접 첨부)</label>
+                <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  💡 시놀로지 NAS 공유링크(gofile.me / /sharing/) 자동 직링크 변환
+                </span>
+              </div>
               <div className="space-y-3">
                 {pImageUrls.map((url, idx) => (
-                  <div key={idx} className="flex gap-3 items-center bg-neutral-50 p-2.5 rounded-xl border border-neutral-200/60">
+                  <div key={idx} className="flex gap-2.5 items-center bg-neutral-50 p-2.5 rounded-xl border border-neutral-200/60">
                     {url && (
-                      <div className="w-14 h-14 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0">
+                      <div className="w-12 h-12 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0">
                         <img
                           src={getDirectImageUrl(url)}
                           alt="제품 사진 미리보기"
@@ -292,14 +282,41 @@ export function ProductModal({ isOpen, onClose, product, categories, onSave }: P
                       type="text"
                       value={url}
                       onChange={(e) => handleImageUrlChange(idx, e.target.value)}
-                      placeholder="제품 이미지 다이렉트 URL 입력 (시놀로지 NAS 공유링크도 가능)"
+                      onBlur={(e) => {
+                        const converted = convertSynologyToDirectUrl(e.target.value);
+                        if (converted !== e.target.value) {
+                          handleImageUrlChange(idx, converted);
+                        }
+                      }}
+                      placeholder="이미지 URL 입력 (https://gofile.me/... 또는 https://.../sharing/...)"
                       className="w-full text-xs px-3 py-2 border border-neutral-200 bg-white rounded-lg focus:outline-none focus:border-neutral-950 font-mono"
                     />
+                    <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                      <Upload size={13} />
+                      <span className="hidden sm:inline">파일 선택</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            if (event.target?.result) {
+                              handleImageUrlChange(idx, event.target.result as string);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
                     {pImageUrls.length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveImageUrlField(idx)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer border border-red-100"
+                        title="삭제"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -862,7 +879,11 @@ export function BannerModal({ isOpen, onClose, banners, onUpdateBanners }: Banne
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateBanners(fields);
+    const updated = fields.map(b => ({
+      ...b,
+      imageUrl: convertSynologyToDirectUrl(b.imageUrl)
+    }));
+    onUpdateBanners(updated);
     alert('홈페이지 메인 배너 슬라이드 구성이 반영되었습니다.');
     onClose();
   };
@@ -935,19 +956,50 @@ export function BannerModal({ isOpen, onClose, banners, onUpdateBanners }: Banne
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                  <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
                     <div className="flex-grow w-full">
-                      <label className="block text-[11px] font-bold text-neutral-500 mb-1.5">배경 이미지 파일 경로 / 링크</label>
-                      <input
-                        type="text"
-                        value={b.imageUrl}
-                        onChange={(e) => handleFieldChange(idx, 'imageUrl', e.target.value)}
-                        className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-950 font-mono"
-                        required
-                      />
+                      <label className="block text-[11px] font-bold text-neutral-500 mb-1.5">
+                        배경 이미지 URL (시놀로지 공유 링크 또는 파일 직접 첨부)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={b.imageUrl}
+                          onChange={(e) => handleFieldChange(idx, 'imageUrl', e.target.value)}
+                          onBlur={(e) => {
+                            const converted = convertSynologyToDirectUrl(e.target.value);
+                            if (converted !== e.target.value) {
+                              handleFieldChange(idx, 'imageUrl', converted);
+                            }
+                          }}
+                          placeholder="이미지 URL 입력 (https://gofile.me/... 또는 https://.../sharing/...)"
+                          className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-950 font-mono"
+                          required
+                        />
+                        <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                          <Upload size={13} />
+                          <span>파일 선택</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  handleFieldChange(idx, 'imageUrl', event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
                     {b.imageUrl && (
-                      <div className="w-24 h-12 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0 md:mt-5">
+                      <div className="w-20 h-12 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0 md:mt-5">
                         <img
                           src={getDirectImageUrl(b.imageUrl)}
                           alt="배너 프리뷰"
@@ -1786,7 +1838,7 @@ export function ConstructionProjectModal({ isOpen, onClose, project, onSave }: C
                   </button>
                 ))}
               </div>
-              <div className="flex gap-3 items-center bg-neutral-50 p-2.5 rounded-xl border border-neutral-200/60 mb-2">
+              <div className="flex gap-2.5 items-center bg-neutral-50 p-2.5 rounded-xl border border-neutral-200/60 mb-2">
                 {image && (
                   <div className="w-14 h-14 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0">
                     <img
@@ -1804,9 +1856,35 @@ export function ConstructionProjectModal({ isOpen, onClose, project, onSave }: C
                   type="text"
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
-                  placeholder="이미지 파일 경로 또는 외부 이미지 URL (시놀로지 NAS 공유링크도 가능)"
+                  onBlur={(e) => {
+                    const converted = convertSynologyToDirectUrl(e.target.value);
+                    if (converted !== e.target.value) {
+                      setImage(converted);
+                    }
+                  }}
+                  placeholder="이미지 URL 입력 (https://gofile.me/... 또는 https://.../sharing/...)"
                   className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 bg-white rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
                 />
+                <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3 py-2.5 rounded-xl cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                  <Upload size={13} />
+                  <span>파일 선택</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        if (event.target?.result) {
+                          setImage(event.target.result as string);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
               </div>
             </div>
 
