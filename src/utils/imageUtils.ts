@@ -22,14 +22,20 @@ export function getSynologyCandidates(url: string): string[] {
         const serverId = parts[0];
         const shareId = parts[1].split('?')[0].split('#')[0];
         
-        // 1) Direct gofile.me with dlink=true (most reliable for File Station share links)
+        // 1) Fast Image CDN/CORS Proxy via wsrv.nl (Bypasses CORS/Referrer blocks on GitHub Pages)
+        const proxyGofileUrl = `https://wsrv.nl/?url=${encodeURIComponent(`gofile.me/${serverId}/${shareId}?dlink=true`)}`;
+        
+        // 2) Direct gofile.me link with dlink=true
         const dlinkUrl = `https://gofile.me/${serverId}/${shareId}?dlink=true`;
-        // 2) Direct QuickConnect API URL
-        const directQcUrl = `https://${serverId.toLowerCase()}.direct.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
-        // 3) Standard QuickConnect API URL
+        
+        // 3) QuickConnect Direct API via Proxy
+        const directQcRaw = `https://${serverId.toLowerCase()}.direct.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
+        const proxyQcUrl = `https://wsrv.nl/?url=${encodeURIComponent(directQcRaw)}`;
+
+        // 4) Raw QuickConnect Direct API
         const standardQcUrl = `https://${serverId.toLowerCase()}.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
 
-        return [dlinkUrl, directQcUrl, standardQcUrl, trimmed];
+        return [proxyGofileUrl, dlinkUrl, proxyQcUrl, directQcRaw, standardQcUrl, trimmed];
       }
     } catch {
       // Fallback below
@@ -52,7 +58,9 @@ export function getSynologyCandidates(url: string): string[] {
         const connector = trimmed.includes('?') ? '&' : '?';
         const dlinkUrl = `${trimmed}${connector}dlink=true`;
 
-        return [qcParsed.toString(), dlinkUrl, trimmed];
+        const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(dlinkUrl)}`;
+
+        return [proxyUrl, qcParsed.toString(), dlinkUrl, trimmed];
       }
     } catch {
       // Fallback
@@ -75,13 +83,14 @@ export function getDirectImageUrl(url: string): string {
     return cleanUrl;
   }
 
-  // Convert Synology links to direct download links
+  // Convert Synology links to direct download/proxy links
   if (cleanUrl.includes('gofile.me/') || cleanUrl.includes('/sharing/')) {
     return convertSynologyToDirectUrl(cleanUrl);
   }
 
   return cleanUrl;
 }
+
 
 
 
