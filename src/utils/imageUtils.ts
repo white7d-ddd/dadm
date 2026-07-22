@@ -3,54 +3,68 @@
  * into direct displayable image/download URLs that work seamlessly on static GitHub Pages
  * as well as full-stack Node server environments.
  */
-export function convertSynologyToDirectUrl(url: string): string {
-  if (!url) return '';
+
+export function getSynologyCandidates(url: string): string[] {
+  if (!url) return [];
   const trimmed = url.trim();
 
   // If already a data URL, blob, or local path
   if (trimmed.startsWith('data:') || trimmed.startsWith('blob:') || trimmed.startsWith('/')) {
-    return trimmed;
+    return [trimmed];
   }
 
-  // Already converted to direct Synology download link
-  if (trimmed.includes('/fbsharing/api/download')) {
-    return trimmed;
-  }
-
-  // Handle gofile.me links: e.g. https://gofile.me/7X9a/AbCdEf
+  // Handle gofile.me links: e.g. https://gofile.me/7orbX/vCIhTXDdy
   if (trimmed.includes('gofile.me/')) {
     try {
-      const parsed = new URL(trimmed);
+      const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
       const parts = parsed.pathname.split('/').filter(Boolean);
       if (parts.length >= 2) {
         const serverId = parts[0];
         const shareId = parts[1].split('?')[0].split('#')[0];
-        // Synology QuickConnect direct download URL format
-        return `https://${serverId.toLowerCase()}.direct.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
+        
+        // 1) Direct gofile.me with dlink=true (most reliable for File Station share links)
+        const dlinkUrl = `https://gofile.me/${serverId}/${shareId}?dlink=true`;
+        // 2) Direct QuickConnect API URL
+        const directQcUrl = `https://${serverId.toLowerCase()}.direct.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
+        // 3) Standard QuickConnect API URL
+        const standardQcUrl = `https://${serverId.toLowerCase()}.quickconnect.to/fbsharing/api/download?id=${encodeURIComponent(shareId)}`;
+
+        return [dlinkUrl, directQcUrl, standardQcUrl, trimmed];
       }
     } catch {
-      // Fallback
+      // Fallback below
     }
   }
 
   // Handle /sharing/ links: e.g. https://nas.mydomain.com:5001/sharing/AbCdEf or https://7x9a.quickconnect.to/sharing/AbCdEf
   if (trimmed.includes('/sharing/')) {
     try {
-      const parsed = new URL(trimmed);
+      const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
       const parts = parsed.pathname.split('/').filter(Boolean);
       const sharingIndex = parts.indexOf('sharing');
       if (sharingIndex !== -1 && parts[sharingIndex + 1]) {
         const shareId = parts[sharingIndex + 1].split('?')[0].split('#')[0];
-        parsed.pathname = '/fbsharing/api/download';
-        parsed.search = `?id=${encodeURIComponent(shareId)}`;
-        return parsed.toString();
+        
+        const qcParsed = new URL(parsed.toString());
+        qcParsed.pathname = '/fbsharing/api/download';
+        qcParsed.search = `?id=${encodeURIComponent(shareId)}`;
+
+        const connector = trimmed.includes('?') ? '&' : '?';
+        const dlinkUrl = `${trimmed}${connector}dlink=true`;
+
+        return [qcParsed.toString(), dlinkUrl, trimmed];
       }
     } catch {
       // Fallback
     }
   }
 
-  return trimmed;
+  return [trimmed];
+}
+
+export function convertSynologyToDirectUrl(url: string): string {
+  const candidates = getSynologyCandidates(url);
+  return candidates[0] || url.trim();
 }
 
 export function getDirectImageUrl(url: string): string {
@@ -68,5 +82,6 @@ export function getDirectImageUrl(url: string): string {
 
   return cleanUrl;
 }
+
 
 
