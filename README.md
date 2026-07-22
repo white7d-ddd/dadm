@@ -45,6 +45,15 @@ npm run build
 npm start
 ```
 
+## 🌐 깃허브 페이지 배포 안내 (GitHub Pages Deployment)
+
+깃허브 페이지(GitHub Pages)는 하위 경로(예: `https://white7d-ddd.github.io/dadm/`)에서 정적 파일만 호스팅하므로, Vite 설정에 `base: './'` 설정이 완료되어 있어야 흰 화면 없이 정상 작동합니다.
+
+### 배포 방법 (`dist` 폴더 배포)
+1. `npm run build` 명령어를 실행하여 `dist/` 폴더 생성
+2. GitHub Repository **Settings > Pages** 이동
+3. Source를 **Deploy from a branch**로 설정하고, `gh-pages` 브랜치 또는 `main` 브랜치의 `dist` (또는 root) 경로를 지정하거나, GitHub Actions를 통해 `dist/` 폴더를 자동으로 배포합니다.
+
 ## 📁 프로젝트 구조 (Project Structure)
 
 ```text

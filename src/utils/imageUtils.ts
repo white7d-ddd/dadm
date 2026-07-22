@@ -14,6 +14,15 @@ export function getDirectImageUrl(url: string): string {
 
   // If it's a Synology NAS share link (gofile.me or /sharing/)
   if (cleanUrl.includes('gofile.me/') || cleanUrl.includes('/sharing/')) {
+    // GitHub Pages is a static host without Node backend proxy support
+    const isStaticHost = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+    if (isStaticHost) {
+      if (cleanUrl.includes('gofile.me/') && !cleanUrl.includes('dlink=true')) {
+        const connector = cleanUrl.includes('?') ? '&' : '?';
+        return `${cleanUrl}${connector}dlink=true`;
+      }
+      return cleanUrl;
+    }
     return `/api/synology-proxy?url=${encodeURIComponent(cleanUrl)}`;
   }
   
