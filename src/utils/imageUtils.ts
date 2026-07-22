@@ -1,30 +1,22 @@
 /**
- * Converts a standard Synology NAS file share link (gofile.me or /sharing/)
- * into a direct image stream/download URL so it can be loaded directly by <img> tags.
+ * Converts image URLs including Synology NAS share links (gofile.me or /sharing/)
+ * into direct displayable image URLs via our backend proxy.
  */
 export function getDirectImageUrl(url: string): string {
   if (!url) return '';
   
   const cleanUrl = url.trim();
   
-  // 1. Synology gofile.me share link (e.g., https://gofile.me/6xKyz/abcdef)
-  if (cleanUrl.includes('gofile.me/')) {
-    if (cleanUrl.includes('dlink=true')) return cleanUrl;
-    const connector = cleanUrl.includes('?') ? '&' : '?';
-    return `${cleanUrl}${connector}dlink=true`;
+  // If it's already a relative path, data URL, or blob URL, return as is
+  if (cleanUrl.startsWith('/') || cleanUrl.startsWith('data:') || cleanUrl.startsWith('blob:')) {
+    return cleanUrl;
   }
-  
-  // 2. Synology NAS standard /sharing/ link (e.g., https://nas.domain.com:5001/sharing/abcdef)
-  if (cleanUrl.includes('/sharing/')) {
-    if (cleanUrl.includes('/fbsharing/')) return cleanUrl;
-    
-    const parts = cleanUrl.split('/sharing/');
-    if (parts.length === 2) {
-      const base = parts[0];
-      const id = parts[1].split('?')[0];
-      return `${base}/fbsharing/api/download?id=${id}&dlink=true`;
-    }
+
+  // If it's a Synology NAS share link (gofile.me or /sharing/)
+  if (cleanUrl.includes('gofile.me/') || cleanUrl.includes('/sharing/')) {
+    return `/api/synology-proxy?url=${encodeURIComponent(cleanUrl)}`;
   }
   
   return cleanUrl;
 }
+
