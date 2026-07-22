@@ -1,0 +1,8 @@
+{
+  "name": "Remix: DADMDESIGN - 2026 07 21 ",
+  "description": "Premium outdoor landscape furniture and street design catalog by DADMDESIGN. Features responsive catalogs, model specifications, customizable hero banners, and an integrated admin editor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
