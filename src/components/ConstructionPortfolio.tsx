@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { MapPin, Calendar, Wrench, ShieldCheck, TreePine, Award, PhoneCall, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { CompanyInfo, ConstructionProject, PageHeaders } from '../types';
 import EditableHeader from './EditableHeader';
 import { getDirectImageUrl } from '../utils/imageUtils';
@@ -39,12 +39,10 @@ export default function ConstructionPortfolio({
             isAdminLoggedIn={isAdminLoggedIn}
             onUpdateHeaders={onUpdatePageHeaders}
             centered={true}
-            icon={<Wrench size={12} className="text-neutral-600" />}
           />
         ) : (
           <>
             <span className="inline-flex items-center space-x-1 px-3 py-1 bg-neutral-100 border border-neutral-200/60 rounded-full text-[10px] font-mono tracking-widest uppercase text-neutral-500 font-bold">
-              <Wrench size={12} className="text-neutral-600" />
               <span>Construction Portfolio</span>
             </span>
             <h1 className="text-3xl font-extrabold text-neutral-950 font-sans tracking-tight">
@@ -103,8 +101,7 @@ export default function ConstructionPortfolio({
                     <span className="text-[10px] font-bold font-sans bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
                       {proj.tag}
                     </span>
-                    <span className="text-[11px] font-mono text-neutral-400 flex items-center">
-                      <Calendar size={12} className="mr-1" />
+                    <span className="text-[11px] font-mono text-neutral-400">
                       {proj.period}
                     </span>
                   </div>
@@ -145,13 +142,11 @@ export default function ConstructionPortfolio({
                 {/* Specification Mini Table */}
                 <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100/80 space-y-2 text-xs font-sans">
                   <div className="flex items-center space-x-2">
-                    <MapPin size={14} className="text-neutral-400 shrink-0" />
                     <span className="text-neutral-500 font-medium w-16 shrink-0">공사위치</span>
                     <span className="text-neutral-900 font-semibold">{proj.location}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Wrench size={14} className="text-neutral-400 shrink-0" />
-                    <span className="text-neutral-500 font-medium w-16 shrink-0">납품품목</span>
+                    <span className="text-neutral-500 font-medium w-16 shrink-0">공사내용</span>
                     <span className="text-neutral-900 font-medium">{proj.items}</span>
                   </div>
                 </div>

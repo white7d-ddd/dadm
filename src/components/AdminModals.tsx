@@ -1846,12 +1846,12 @@ export function ConstructionProjectModal({ isOpen, onClose, project, onSave }: C
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-neutral-500 mb-1.5">납품 품목 요약</label>
+                <label className="block text-xs font-bold text-neutral-500 mb-1.5">공사 내용 요약</label>
                 <input
                   type="text"
                   value={items}
                   onChange={(e) => setItems(e.target.value)}
-                  placeholder="예: 디자인 등벤치 20대, 평벤치 15대"
+                  placeholder="예: 디자인 등벤치 20대, 평벤치 15대 설치 공사"
                   className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950"
                 />
               </div>

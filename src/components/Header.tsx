@@ -61,10 +61,10 @@ export default function Header({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-20 relative">
           
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center z-10">
             <button
               onClick={() => handleNav('home')}
               className="flex items-center text-left cursor-pointer animate-fade-in"
@@ -78,8 +78,8 @@ export default function Header({
             </button>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center md:space-x-2.5 lg:space-x-5 xl:space-x-8">
+          {/* Desktop Navigation (Centered) */}
+          <nav className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2 md:space-x-2.5 lg:space-x-5 xl:space-x-8">
             {/* 1. 회사소개 */}
             <div className="relative group">
               <button
