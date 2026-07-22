@@ -1357,18 +1357,46 @@ export function CompanyInfoModal({ isOpen, onClose, companyInfo, onSave }: Compa
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
                     <div className="md:col-span-3">
-                      <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center">
-                        <span>회사소개 대표 이미지 URL</span>
-                        <span className="ml-2 px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
+                      <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center justify-between">
+                        <span>회사소개 대표 이미지 URL (또는 파일 직접 첨부)</span>
+                        <span className="px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
                       </label>
-                      <input
-                        type="text"
-                        value={cAboutUsImage}
-                        onChange={(e) => setCAboutUsImage(e.target.value)}
-                        placeholder="공유 이미지 주소 또는 로컬 파일 경로"
-                        className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cAboutUsImage}
+                          onChange={(e) => setCAboutUsImage(e.target.value)}
+                          onBlur={(e) => {
+                            const converted = convertSynologyToDirectUrl(e.target.value);
+                            if (converted !== e.target.value) {
+                              setCAboutUsImage(converted);
+                            }
+                          }}
+                          placeholder="공유 이미지 주소 (https://gofile.me/... 또는 https://.../sharing/...)"
+                          className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
+                          required
+                        />
+                        <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                          <Upload size={13} />
+                          <span>파일 선택</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setCAboutUsImage(event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
                     <div className="md:col-span-1 bg-neutral-50 p-2 rounded-xl border border-neutral-200/60 flex flex-col items-center justify-center">
                       <span className="text-[9px] font-bold text-neutral-400 mb-1 block w-full text-center uppercase">미리보기</span>
@@ -1395,13 +1423,41 @@ export function CompanyInfoModal({ isOpen, onClose, companyInfo, onSave }: Compa
                       <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center">
                         <span>조달제품용 나라장터 마크 이미지 URL (선택)</span>
                       </label>
-                      <input
-                        type="text"
-                        value={cNarajangterMarkUrl}
-                        onChange={(e) => setCNarajangterMarkUrl(e.target.value)}
-                        placeholder="공유 이미지 주소 또는 로컬 파일 경로"
-                        className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cNarajangterMarkUrl}
+                          onChange={(e) => setCNarajangterMarkUrl(e.target.value)}
+                          onBlur={(e) => {
+                            const converted = convertSynologyToDirectUrl(e.target.value);
+                            if (converted !== e.target.value) {
+                              setCNarajangterMarkUrl(converted);
+                            }
+                          }}
+                          placeholder="공유 이미지 주소 또는 이미지 URL"
+                          className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
+                        />
+                        <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                          <Upload size={13} />
+                          <span>파일 선택</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setCNarajangterMarkUrl(event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      </div>
                       <p className="text-[10px] text-neutral-400 mt-1 leading-relaxed">
                         조달 등록 품목의 이미지 좌측 하단에 오버레이로 표시될 나라장터 마크를 지정합니다. 
                         미지정 시 기본 둥근 태극 무늬 마크가 출력됩니다.
@@ -2228,18 +2284,46 @@ export function HomeSectionModal({ isOpen, onClose, homeSectionInfo, onSave }: H
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-3 space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center">
-                      <span>이미지 URL 주소</span>
-                      <span className="ml-2 px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
+                    <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center justify-between">
+                      <span>이미지 URL 주소 (또는 파일 직접 첨부)</span>
+                      <span className="px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
                     </label>
-                    <input
-                      type="text"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="이미지 URL 주소 또는 시놀로지 공유링크 (gofile.me/...)"
-                      className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        onBlur={(e) => {
+                          const converted = convertSynologyToDirectUrl(e.target.value);
+                          if (converted !== e.target.value) {
+                            setImageUrl(converted);
+                          }
+                        }}
+                        placeholder="이미지 URL 주소 또는 시놀로지 공유링크 (gofile.me/...)"
+                        className="w-full text-xs px-3.5 py-2.5 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-950 font-mono"
+                        required
+                      />
+                      <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                        <Upload size={13} />
+                        <span>파일 선택</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              if (event.target?.result) {
+                                setImageUrl(event.target.result as string);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>

@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   User,
   UserCog,
-  MessageSquare
+  MessageSquare,
+  Upload
 } from 'lucide-react';
 import { Product, Banner, CompanyInfo, Inquiry, Category, HomeSectionInfo, PopupItem } from '../types';
 import { getDirectImageUrl, convertSynologyToDirectUrl } from '../utils/imageUtils';
@@ -1682,19 +1683,46 @@ export default function AdminPanel({
                           </div>
                         ) : (
                           <div>
-                            <label className="block text-[10px] font-bold text-neutral-500 mb-1.5">1. 시놀로지 NAS 공유 링크 또는 웹 이미지 URL 입력</label>
-                            <input
-                              type="url"
-                              value={customPictoUrl}
-                              onChange={(e) => setCustomPictoUrl(e.target.value)}
-                              placeholder="https://gofile.me/6xXyz/abcdef"
-                              className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-950 font-sans"
-                            />
+                            <label className="block text-[10px] font-bold text-neutral-500 mb-1.5">1. 시놀로지 NAS 공유 링크 또는 파일 직접 첨부</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={customPictoUrl}
+                                onChange={(e) => setCustomPictoUrl(e.target.value)}
+                                onBlur={(e) => {
+                                  const converted = convertSynologyToDirectUrl(e.target.value);
+                                  if (converted !== e.target.value) {
+                                    setCustomPictoUrl(converted);
+                                  }
+                                }}
+                                placeholder="https://gofile.me/6xXyz/abcdef 또는 이미지 URL"
+                                className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-950 font-sans"
+                              />
+                              <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                                <Upload size={13} />
+                                <span>파일 선택</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      if (event.target?.result) {
+                                        setCustomPictoUrl(event.target.result as string);
+                                      }
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }}
+                                />
+                              </label>
+                            </div>
                             <div className="mt-1.5 bg-neutral-100/50 border border-neutral-200 p-2.5 rounded-lg text-[9px] text-neutral-500 font-sans space-y-1">
                               <p className="font-bold text-neutral-700">💡 시놀로지 NAS 공유링크 등록 가이드:</p>
                               <p>• NAS File Station에서 파일 선택 후 <b>[공유]</b> 링크 생성</p>
-                              <p>• gofile.me 링크 입력 시, 다이렉트 이미지 호출을 위해 자동으로 <b>?download</b> 매개변수를 주소 끝에 부착합니다.</p>
-                              <p>• 공유 시 권한이 '공개(모든 사용자)' 상태인지 꼭 확인하세요.</p>
+                              <p>• gofile.me 링크 입력 시 스트리밍 주소로 자동 연결됩니다.</p>
                             </div>
                           </div>
                         )}
@@ -1770,14 +1798,45 @@ export default function AdminPanel({
 
                       <div className="mt-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
                         <div className="flex-grow w-full">
-                          <label className="block text-[11px] font-bold text-neutral-500 mb-1.5">배경 이미지 파일 경로 / 링크</label>
-                          <input
-                            type="text"
-                            value={b.imageUrl}
-                            onChange={(e) => handleBannerFieldChange(idx, 'imageUrl', e.target.value)}
-                            className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
-                            required
-                          />
+                          <label className="block text-[11px] font-bold text-neutral-500 mb-1.5">
+                            배경 이미지 URL (시놀로지 공유 링크 또는 파일 직접 첨부)
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={b.imageUrl}
+                              onChange={(e) => handleBannerFieldChange(idx, 'imageUrl', e.target.value)}
+                              onBlur={(e) => {
+                                const converted = convertSynologyToDirectUrl(e.target.value);
+                                if (converted !== e.target.value) {
+                                  handleBannerFieldChange(idx, 'imageUrl', converted);
+                                }
+                              }}
+                              placeholder="https://gofile.me/... 또는 이미지 URL"
+                              className="w-full text-xs px-3 py-2 bg-white border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
+                              required
+                            />
+                            <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                              <Upload size={13} />
+                              <span>파일 선택</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    if (event.target?.result) {
+                                      handleBannerFieldChange(idx, 'imageUrl', event.target.result as string);
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
                         {b.imageUrl && (
                           <div className="w-24 h-12 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shrink-0 md:mt-5">
@@ -1948,18 +2007,46 @@ export default function AdminPanel({
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2">
                     <div className="md:col-span-3">
-                      <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center">
-                        <span>회사소개 대표 이미지 URL</span>
-                        <span className="ml-2 px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
+                      <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center justify-between">
+                        <span>회사소개 대표 이미지 URL (또는 파일 직접 첨부)</span>
+                        <span className="px-1.5 py-0.5 bg-amber-500 text-neutral-950 font-bold rounded text-[9px] uppercase font-sans">Synology NAS 지원</span>
                       </label>
-                      <input
-                        type="text"
-                        value={cAboutUsImage}
-                        onChange={(e) => setCAboutUsImage(e.target.value)}
-                        placeholder="시놀로지 공유 링크 (gofile.me/...) 또는 이미지 주소"
-                        className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cAboutUsImage}
+                          onChange={(e) => setCAboutUsImage(e.target.value)}
+                          onBlur={(e) => {
+                            const converted = convertSynologyToDirectUrl(e.target.value);
+                            if (converted !== e.target.value) {
+                              setCAboutUsImage(converted);
+                            }
+                          }}
+                          placeholder="시놀로지 공유 링크 (gofile.me/...) 또는 이미지 주소"
+                          className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
+                          required
+                        />
+                        <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                          <Upload size={13} />
+                          <span>파일 선택</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setCAboutUsImage(event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      </div>
                       <p className="text-[10px] text-neutral-400 mt-1 leading-relaxed">
                         회사 소개 페이지(About Us) 최상단에 가로로 넓게 들어갈 배너 이미지를 설정합니다. 
                         시놀로지 NAS의 파일 링크(<code className="bg-neutral-100 px-1 rounded text-neutral-600 font-mono">gofile.me/...</code>)를 그대로 입력하시면 스트리밍 주소로 자동 연동됩니다.
@@ -1990,16 +2077,44 @@ export default function AdminPanel({
                   <div className="border-t border-neutral-100 pt-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="md:col-span-3">
-                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center">
+                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 flex items-center justify-between">
                           <span>조달제품용 나라장터 마크 이미지 URL (선택)</span>
                         </label>
-                        <input
-                          type="text"
-                          value={cNarajangterMarkUrl}
-                          onChange={(e) => setCNarajangterMarkUrl(e.target.value)}
-                          placeholder="마크 이미지 URL 또는 시놀로지 파일 링크"
-                          className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={cNarajangterMarkUrl}
+                            onChange={(e) => setCNarajangterMarkUrl(e.target.value)}
+                            onBlur={(e) => {
+                              const converted = convertSynologyToDirectUrl(e.target.value);
+                              if (converted !== e.target.value) {
+                                setCNarajangterMarkUrl(converted);
+                              }
+                            }}
+                            placeholder="마크 이미지 URL 또는 시놀로지 파일 링크"
+                            className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
+                          />
+                          <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                            <Upload size={13} />
+                            <span>파일 선택</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  if (event.target?.result) {
+                                    setCNarajangterMarkUrl(event.target.result as string);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                        </div>
                         <p className="text-[10px] text-neutral-400 mt-1 leading-relaxed">
                           조달 등록 품목의 이미지 좌측 하단에 오버레이로 표시될 나라장터 마크를 지정합니다. 
                           미지정 시 기본 둥근 태극 무늬 마크가 자동으로 출력됩니다.
@@ -2217,16 +2332,46 @@ export default function AdminPanel({
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-neutral-500 mb-2">연출 이미지 주소 (URL 또는 프로젝트 내 이미지 경로)</label>
-                      <input
-                        type="text"
-                        value={hImageUrl}
-                        onChange={(e) => setHImageUrl(e.target.value)}
-                        className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
-                        required
-                      />
+                      <label className="block text-xs font-bold text-neutral-500 mb-2">
+                        연출 이미지 주소 (시놀로지 공유링크 / URL 입력 또는 파일 직접 선택)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={hImageUrl}
+                          onChange={(e) => setHImageUrl(e.target.value)}
+                          onBlur={(e) => {
+                            const converted = convertSynologyToDirectUrl(e.target.value);
+                            if (converted !== e.target.value) {
+                              setHImageUrl(converted);
+                            }
+                          }}
+                          className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
+                          required
+                        />
+                        <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                          <Upload size={13} />
+                          <span>파일 선택</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                if (event.target?.result) {
+                                  setHImageUrl(event.target.result as string);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      </div>
                       <p className="text-[10px] text-neutral-400 mt-1.5 leading-relaxed">
-                        기본 권장 경로: <code className="bg-neutral-100 px-1 rounded">/src/assets/images/street_pergola_1783302650051.jpg</code> 또는 외부 사진 호스팅 URL을 사용하십시오.
+                        기본 권장 경로: <code className="bg-neutral-100 px-1 rounded">/src/assets/images/street_pergola_1783302650051.jpg</code>, 시놀로지 파일링크 또는 파일 직접 첨부를 이용하세요.
                       </p>
                     </div>
 
@@ -2782,14 +2927,42 @@ export default function AdminPanel({
                         </div>
 
                         <div>
-                          <label className="block text-xs font-bold text-neutral-500 mb-2">이미지 주소 (Synology NAS 공유 및 외부 URL 지원)</label>
-                          <input
-                            type="text"
-                            value={popupImageUrl}
-                            onChange={(e) => setPopupImageUrl(e.target.value)}
-                            placeholder="https://gofile.me/... 또는 이미지 URL"
-                            className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
-                          />
+                          <label className="block text-xs font-bold text-neutral-500 mb-2">이미지 주소 (Synology NAS 공유 및 외부 URL 지원 또는 파일 선택)</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={popupImageUrl}
+                              onChange={(e) => setPopupImageUrl(e.target.value)}
+                              onBlur={(e) => {
+                                const converted = convertSynologyToDirectUrl(e.target.value);
+                                if (converted !== e.target.value) {
+                                  setPopupImageUrl(converted);
+                                }
+                              }}
+                              placeholder="https://gofile.me/... 또는 이미지 URL"
+                              className="w-full text-xs sm:text-sm px-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:border-neutral-900 font-mono"
+                            />
+                            <label className="shrink-0 bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold px-3.5 py-2.5 rounded-lg cursor-pointer transition-colors inline-flex items-center space-x-1 shadow-xs">
+                              <Upload size={13} />
+                              <span>파일 선택</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    if (event.target?.result) {
+                                      setPopupImageUrl(event.target.result as string);
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
 
                         <div>
