@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 
 // Cache resolved image buffers in memory (10 minutes TTL)
 const imageCache = new Map<string, { contentType: string; buffer: Buffer; expiresAt: number }>();
@@ -102,7 +101,8 @@ async function resolveSynologyImage(url: string): Promise<{ contentType: string;
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  const isProduction = process.env.NODE_ENV === "production";
 
   // Synology NAS Share Link Proxy API Route
   app.get("/api/synology-proxy", async (req, res) => {
@@ -150,8 +150,9 @@ async function startServer() {
     return res.redirect(targetUrl);
   });
 
-  // Mount Vite middleware in development
-  if (process.env.NODE_ENV !== "production") {
+  // Serve static files in production or mount Vite middleware in development
+  if (!isProduction) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -166,7 +167,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Full-stack server listening on http://0.0.0.0:${PORT}`);
+    console.log(`Server listening on http://0.0.0.0:${PORT} (mode: ${isProduction ? 'production' : 'development'})`);
   });
 }
 
