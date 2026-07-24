@@ -96,7 +96,10 @@ export default function InquiryForm({
     const saved = localStorage.getItem('dadm_price_data');
     if (saved) {
       try {
-        return JSON.parse(saved) as PriceData[];
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
         return defaultPriceData;
       }

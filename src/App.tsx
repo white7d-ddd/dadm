@@ -91,22 +91,25 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Local Storage Database Synchronizer States
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners] = useState<Banner[]>(defaultBanners);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
   const [homeSectionInfo, setHomeSectionInfo] = useState<HomeSectionInfo>(defaultHomeSectionInfo);
   const [pageHeaders, setPageHeaders] = useState<PageHeaders>(defaultPageHeaders);
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [constructionProjects, setConstructionProjects] = useState<ConstructionProject[]>([]);
-  const [popups, setPopups] = useState<PopupItem[]>([]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_MOCK_INQUIRIES);
+  const [constructionProjects, setConstructionProjects] = useState<ConstructionProject[]>(defaultConstructionProjects);
+  const [popups, setPopups] = useState<PopupItem[]>(defaultPopups);
   
   // Dynamic Available Icons (Pictograms) State
   const [availableIcons, setAvailableIcons] = useState<{ name: string; label: string }[]>(() => {
     const cached = localStorage.getItem('dadm_available_icons');
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       } catch (e) {
         // ignore
       }
@@ -210,15 +213,18 @@ export default function App() {
     const cachedProducts = localStorage.getItem('dadm_products');
     if (cachedProducts) {
       try {
-        const parsed = JSON.parse(cachedProducts) as Product[];
-        const sanitized = parsed.map(p => {
-          if (p.categoryId === 'planter') {
-            return { ...p, categoryId: 'bollard' };
-          }
-          return p;
-        });
-        setProducts(sanitized);
-        localStorage.setItem('dadm_products', JSON.stringify(sanitized));
+        const parsed = JSON.parse(cachedProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = parsed.map(p => {
+            if (p && p.categoryId === 'planter') {
+              return { ...p, categoryId: 'bollard' };
+            }
+            return p;
+          }).filter(Boolean);
+          setProducts(sanitized);
+        } else {
+          setProducts(defaultProducts);
+        }
       } catch (e) {
         setProducts(defaultProducts);
       }
@@ -230,7 +236,12 @@ export default function App() {
     const cachedCategories = localStorage.getItem('dadm_categories');
     if (cachedCategories) {
       try {
-        setCategories(JSON.parse(cachedCategories));
+        const parsed = JSON.parse(cachedCategories);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCategories(parsed);
+        } else {
+          setCategories(defaultCategories);
+        }
       } catch (e) {
         setCategories(defaultCategories);
       }
@@ -242,7 +253,12 @@ export default function App() {
     const cachedBanners = localStorage.getItem('dadm_banners');
     if (cachedBanners) {
       try {
-        setBanners(JSON.parse(cachedBanners));
+        const parsed = JSON.parse(cachedBanners);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setBanners(parsed);
+        } else {
+          setBanners(defaultBanners);
+        }
       } catch (e) {
         setBanners(defaultBanners);
       }
@@ -257,6 +273,7 @@ export default function App() {
         const parsed = JSON.parse(cachedCompany) as CompanyInfo;
         // Automatically overwrite if cached company info is outdated
         if (
+          !parsed ||
           parsed.name !== defaultCompanyInfo.name ||
           parsed.representative !== defaultCompanyInfo.representative ||
           parsed.address !== defaultCompanyInfo.address ||
@@ -281,7 +298,12 @@ export default function App() {
     const cachedHomeSection = localStorage.getItem('dadm_home_section');
     if (cachedHomeSection) {
       try {
-        setHomeSectionInfo(JSON.parse(cachedHomeSection));
+        const parsed = JSON.parse(cachedHomeSection);
+        if (parsed && typeof parsed === 'object') {
+          setHomeSectionInfo(parsed);
+        } else {
+          setHomeSectionInfo(defaultHomeSectionInfo);
+        }
       } catch (e) {
         setHomeSectionInfo(defaultHomeSectionInfo);
       }
@@ -293,7 +315,12 @@ export default function App() {
     const cachedInquiries = localStorage.getItem('dadm_inquiries');
     if (cachedInquiries) {
       try {
-        setInquiries(JSON.parse(cachedInquiries));
+        const parsed = JSON.parse(cachedInquiries);
+        if (Array.isArray(parsed)) {
+          setInquiries(parsed);
+        } else {
+          setInquiries(INITIAL_MOCK_INQUIRIES);
+        }
       } catch (e) {
         setInquiries(INITIAL_MOCK_INQUIRIES);
       }
@@ -305,7 +332,12 @@ export default function App() {
     const cachedConstruction = localStorage.getItem('dadm_construction_projects');
     if (cachedConstruction) {
       try {
-        setConstructionProjects(JSON.parse(cachedConstruction));
+        const parsed = JSON.parse(cachedConstruction);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setConstructionProjects(parsed);
+        } else {
+          setConstructionProjects(defaultConstructionProjects);
+        }
       } catch (e) {
         setConstructionProjects(defaultConstructionProjects);
       }
@@ -317,7 +349,12 @@ export default function App() {
     const cachedPopups = localStorage.getItem('dadm_popups');
     if (cachedPopups) {
       try {
-        setPopups(JSON.parse(cachedPopups));
+        const parsed = JSON.parse(cachedPopups);
+        if (Array.isArray(parsed)) {
+          setPopups(parsed);
+        } else {
+          setPopups(defaultPopups);
+        }
       } catch (e) {
         setPopups(defaultPopups);
       }
@@ -329,7 +366,12 @@ export default function App() {
     const cachedPageHeaders = localStorage.getItem('dadm_page_headers');
     if (cachedPageHeaders) {
       try {
-        setPageHeaders({ ...defaultPageHeaders, ...JSON.parse(cachedPageHeaders) });
+        const parsed = JSON.parse(cachedPageHeaders);
+        if (parsed && typeof parsed === 'object') {
+          setPageHeaders({ ...defaultPageHeaders, ...parsed });
+        } else {
+          setPageHeaders(defaultPageHeaders);
+        }
       } catch (e) {
         setPageHeaders(defaultPageHeaders);
       }
@@ -346,8 +388,9 @@ export default function App() {
   }, []);
 
   // Signature products rotating auto-play timer (관리자 지정 간격 또는 기본 2초마다 반복 재생)
-  const signatureProducts = products.filter(p => p.isSignature);
-  const sigProductsToDisplay = signatureProducts.length > 0 ? signatureProducts : products;
+  const signatureProducts = (products || []).filter(p => p && p.isSignature);
+  const sigProductsToDisplay = signatureProducts.length > 0 ? signatureProducts : (products || []);
+
   const displayCount = Math.min(6, sigProductsToDisplay.length);
   const playInterval = (homeSectionInfo?.procurementAutoPlayInterval ?? 2) * 1000;
 
@@ -451,7 +494,8 @@ export default function App() {
   }, [activePage]);
 
   // Filtering Logic
-  const filteredProducts = products.filter((p) => {
+  const filteredProducts = (products || []).filter((p) => {
+    if (!p) return false;
     if (activePage === 'procurement' && p.isProcurement === false) {
       return false;
     }
@@ -459,15 +503,15 @@ export default function App() {
     const searchLower = searchQuery.toLowerCase().trim();
     const matchesSearch =
       searchLower === '' ||
-      p.name.toLowerCase().includes(searchLower) ||
-      p.identificationNo.toLowerCase().includes(searchLower) ||
-      p.material.toLowerCase().includes(searchLower) ||
-      p.featureText.toLowerCase().includes(searchLower);
+      (p.name && p.name.toLowerCase().includes(searchLower)) ||
+      (p.identificationNo && p.identificationNo.toLowerCase().includes(searchLower)) ||
+      (p.material && p.material.toLowerCase().includes(searchLower)) ||
+      (p.featureText && p.featureText.toLowerCase().includes(searchLower));
     return matchesCategory && matchesSearch;
   });
 
   // Fetch product detail if requested
-  const activeProductDetail = products.find(p => p.id === selectedProductId);
+  const activeProductDetail = (products || []).find(p => p && p.id === selectedProductId);
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-neutral-800 antialiased selection:bg-neutral-900 selection:text-white">
